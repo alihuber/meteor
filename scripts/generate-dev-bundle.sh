@@ -48,15 +48,24 @@ extractNodeFromTarGz || downloadNodeFromS3 || downloadOfficialNode
 # Download Mongo from mongodb.com. Will download a 64-bit version of Mongo
 # by default. Will download a 32-bit version of Mongo if using a 32-bit based
 # OS.
-MONGO_VERSION=$MONGO_VERSION_64BIT
-if [ $ARCH = "i686" ]; then
-  MONGO_VERSION=$MONGO_VERSION_32BIT
+if [ "$ARCH" == "aarch64" ] ; then
+  MONGO_VERSION=$MONGO_VERSION_64BIT
+  # Download official MongoDB Ubuntu aarch64 binaries
+  MONGO_URL="https://fastdl.mongodb.org/linux/mongodb-linux-arm64-ubuntu1604-${MONGO_VERSION}.tgz"
+  MONGO_NAME="mongodb-linux-aarch64-ubuntu1604-${MONGO_VERSION}"
+  echo "Downloading Mongo from ${MONGO_URL}"
+  curl -L "${MONGO_URL}" | tar zx
+else
+  MONGO_VERSION=$MONGO_VERSION_64BIT
+  if [ $ARCH = "i686" ]; then
+    MONGO_VERSION=$MONGO_VERSION_32BIT
+  fi
+  MONGO_NAME="mongodb-${OS}-${ARCH}-${MONGO_VERSION}"
+  MONGO_TGZ="${MONGO_NAME}.tgz"
+  MONGO_URL="http://fastdl.mongodb.org/${OS}/${MONGO_TGZ}"
+  echo "Downloading Mongo from ${MONGO_URL}"
+  curl "${MONGO_URL}" | tar zx
 fi
-MONGO_NAME="mongodb-${OS}-${ARCH}-${MONGO_VERSION}"
-MONGO_TGZ="${MONGO_NAME}.tgz"
-MONGO_URL="http://fastdl.mongodb.org/${OS}/${MONGO_TGZ}"
-echo "Downloading Mongo from ${MONGO_URL}"
-curl "${MONGO_URL}" | tar zx
 
 # Put Mongo binaries in the right spot (mongodb/bin)
 mkdir -p "mongodb/bin"
